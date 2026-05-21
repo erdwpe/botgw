@@ -30,12 +30,12 @@ const {
   const rvo = require("./commands/rvo");
   
   const {
-    setTarget,
-    setJam,
-    schedule,
-    status,
-    stop,
-    clear,
+    cmdSetTarget,
+    cmdSetJam,
+    cmdSchedule,
+    cmdStatus,
+    cmdStop,
+    cmdClear,
     sendReport,
     handleAlbumCollector
   } = require("./commands/schedule");
@@ -176,27 +176,27 @@ const {
           }
   
           else if (cmd === "#settarget") {
-            await setTarget(args, reply);
+            await cmdSetTarget(args, reply);
           }
   
           else if (cmd === "#setjam") {
-            await setJam(args, reply, log);
+            await cmdSetJam(args, reply, log);
           }
   
           else if (cmd === "#schedule" || cmd === "#jadwal") {
-            await schedule(sock, msg, text, reply);
+            await cmdSchedule(sock, msg, text, reply);
           }
   
           else if (cmd === "#status") {
-            await status(reply);
+            await cmdStatus(reply);
           }
   
           else if (cmd === "#stop") {
-            await stop(reply);
+            await cmdStop(reply);
           }
   
           else if (cmd === "#clear") {
-            await clear(reply, clearTerminal);
+            await cmdClear(reply, clearTerminal);
           }
   
           else if (cmd === "#setppbotpanjang" || cmd === "#setpp") {
