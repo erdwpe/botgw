@@ -1,49 +1,82 @@
-const { downloadMediaMessage } = require("@whiskeysockets/baileys");
-const pino = require("pino");
-const { getQuotedMessage, getMediaType, log } = require("../lib/helper");
+const { downloadContentFromMessage } = require("@whiskeysockets/baileys");
+const { RVO_LOG_GROUP } = require("../config");
+
+async function streamToBuffer(stream) {
+  let buffer = Buffer.from([]);
+
+  for await (const chunk of stream) {
+    buffer = Buffer.concat([buffer, chunk]);
+  }
+
+  return buffer;
+}
+
+function getQuotedViewOnce(msg) {
+  const quoted =
+    msg.message?.extendedTextMessage?.contextInfo?.quotedMessage;
+
+  if (!quoted) return null;
+
+  const viewOnce =
+    quoted.viewOnceMessageV2?.message ||
+    quoted.viewOnceMessage?.message ||
+    quoted.viewOnceMessageV2Extension?.message ||
+    quoted;
+
+  const image = viewOnce.imageMessage;
+  const video = viewOnce.videoMessage;
+
+  if (image) return { type: "image", message: image };
+  if (video) return { type: "video", message: video };
+
+  return null;
+}
 
 module.exports = async function rvo(sock, msg, reply) {
-  const quoted = getQuotedMessage(msg);
-
-  if (!quoted) {
-    await reply("Reply foto/video view once dengan command:\n#rvo");
-    return;
-  }
-
-  const type = getMediaType(quoted);
-
-  if (!type) {
-    await reply("Media view once tidak ditemukan. Reply foto/video view once.");
-    return;
-  }
-
   try {
-    const buffer = await downloadMediaMessage(
-      {
-        key: msg.key,
-        message: quoted
-      },
-      "buffer",
-      {},
-      {
-        logger: pino({ level: "silent" }),
-        reuploadRequest: sock.updateMediaMessage
-      }
+    if (!RVO_LOG_GROUP) {
+      await reply("RVO_LOG_GROUP belum diset di config.js");
+      return;
+    }
+
+    const media = getQuotedViewOnce(msg);
+
+    if (!media) {
+      await reply("Reply media view once dengan teks: rvo / 👁 / #rvo");
+      return;
+    }
+
+    const stream = await downloadContentFromMessage(
+      media.message,
+      media.type === "image" ? "image" : "video"
     );
 
-    if (type === "imageMessage") {
-      await sock.sendMessage(msg.key.remoteJid, {
+    const buffer = await streamToBuffer(stream);
+    const caption = media.message.caption || "";
+
+    const now = new Date();
+    const jam = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+
+    const infoCaption =
+`*SUCCESS MENGAMBIL PESAN ${media.type.toUpperCase()} DI JAM ${jam}*
+
+Caption asli:
+${caption || "-"}`;
+
+    if (media.type === "image") {
+      await sock.sendMessage(RVO_LOG_GROUP, {
         image: buffer,
-        caption: "Read view once berhasil ✅"
-      }, { quoted: msg });
-    } else if (type === "videoMessage") {
-      await sock.sendMessage(msg.key.remoteJid, {
+        caption: infoCaption
+      });
+    } else {
+      await sock.sendMessage(RVO_LOG_GROUP, {
         video: buffer,
-        caption: "Read view once berhasil ✅"
-      }, { quoted: msg });
+        caption: infoCaption
+      });
     }
+
+    console.log(`[${new Date().toLocaleString("id-ID")}] [RVO] Berhasil dikirim ke grup log: ${RVO_LOG_GROUP}`);
   } catch (e) {
-    log("ERROR", "RVO gagal: " + e.message);
-    await reply("Gagal membaca view once.");
+    await reply("Gagal membuka view once: " + e.message);
   }
 };
