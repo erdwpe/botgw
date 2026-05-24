@@ -13,6 +13,8 @@ module.exports = async function menu(reply) {
   #clear
   #setpp
   #rvo
+  #smeme
+  #petpet
   #s / #sticker`
     );
   };

@@ -26,7 +26,7 @@ module.exports = async function cmdSticker(sock, msg) {
       }
     );
 
-    const stickerBuffer = convertToSticker(buffer, type);
+    const stickerBuffer = await convertToSticker(buffer, type);
 
     await sock.sendMessage(msg.key.remoteJid, {
       sticker: stickerBuffer

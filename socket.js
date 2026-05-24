@@ -27,6 +27,8 @@ const menu = require("./commands/menu");
 const cmdSticker = require("./commands/sticker");
 const setpp = require("./commands/setpp");
 const rvo = require("./commands/rvo");
+const smeme = require("./commands/smeme");
+const petPet = require("./commands/petpet");
 
 const {
   cmdSetTarget,
@@ -234,6 +236,21 @@ const cmd = args.shift().toLowerCase();
         else if (cmd === "#status") {
           await cmdStatus(reply);
         }
+
+else if (cmd === "#petpet" || cmd === "#pet") {
+  await petPet(sock, msg, args, reply);
+}
+	
+	else if (
+  cmd === "#smeme" ||
+  cmd === "#stickmeme" ||
+  cmd === "#stikmeme" ||
+  cmd === "#stickermeme" ||
+  cmd === "#stikermeme"
+) {
+  await smeme(sock, msg, args, reply);
+}
+
 
         else if (cmd === "#stop") {
           await cmdStop(reply);
