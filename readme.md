@@ -7,8 +7,10 @@ Bot WhatsApp berbasis Node.js dengan fitur sticker, smeme, petpet, schedule, rvo
 ## Requirements & Install
 
 Sebelum menjalankan bot, pastikan sudah install:
-
-- Node.js
+ 
+ npm i --legacy-peer-deps --ignore-scripts
+-
+ Node.js
 - Git
 - FFmpeg
 - WebP Tools / webpmux

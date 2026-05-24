@@ -6,6 +6,14 @@ const { execSync } = require("child_process");
 const { TMP_DIR } = require("../config");
 const { getQuotedMessage } = require("../lib/helper");
 
+
+async function react(sock, msg, emoji) {
+  try {
+    await sock.sendMessage(msg.key.remoteJid, {
+      react: { text: emoji, key: msg.key }
+    });
+  } catch {}
+}
 function q(p) {
   return `"${String(p).replace(/"/g, '\\"')}"`;
 }
@@ -73,7 +81,7 @@ module.exports = async function petpet(sock, msg, args, reply) {
   let exif = null;
 
   try {
-    await reply("Membuat petpet...");
+    await react(sock, msg, "⏳");
 
     fs.mkdirSync(frameDir, { recursive: true });
 
@@ -151,6 +159,7 @@ module.exports = async function petpet(sock, msg, args, reply) {
       { sticker: fs.readFileSync(finalWebp) },
       { quoted: msg }
     );
+    await react(sock, msg, "✅");
   } catch (e) {
     console.log("[PETPET ERROR]", e.message);
     await reply("Gagal bikin petpet. Cek log terminal.");

@@ -2,7 +2,13 @@ const { downloadMediaMessage, S_WHATSAPP_NET } = require("@whiskeysockets/bailey
 const pino = require("pino");
 const { getQuotedMessage, getMediaType, log } = require("../lib/helper");
 const { generateProfilePicture } = require("../simple");
-
+async function react(sock, msg, emoji) {
+  try {
+    await sock.sendMessage(msg.key.remoteJid, {
+      react: { text: emoji, key: msg.key }
+    });
+  } catch {}
+}
 module.exports = async function setpp(sock, msg, reply) {
   const quoted = getQuotedMessage(msg);
   const sourceMsg = quoted ? { key: msg.key, message: quoted } : msg;
@@ -14,6 +20,7 @@ module.exports = async function setpp(sock, msg, reply) {
   }
 
   try {
+    await react(sock, msg, "⏳");
     const buffer = await downloadMediaMessage(
       sourceMsg,
       "buffer",
@@ -42,7 +49,7 @@ module.exports = async function setpp(sock, msg, reply) {
       ]
     });
 
-    await reply("Berhasil mengganti foto profil bot ✅");
+    await react(sock, msg, "✅");
   } catch (e) {
     log("ERROR", "Set PP bot gagal: " + e.message);
     await reply("Gagal mengganti foto profil bot.");
